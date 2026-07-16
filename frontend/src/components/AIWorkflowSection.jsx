@@ -87,7 +87,7 @@ const AIWorkflowSection = () => {
   return (
     <section id="workflow" className="workflow">
       <div className="workflow-container">
-        <div className="workflow-header">
+        <div className="workflow-header fade-in">
           <h2 className="workflow-title">How GuardianAI Works</h2>
           <p className="workflow-subtitle">
             A sophisticated four-step process that ensures rapid emergency response
@@ -96,7 +96,7 @@ const AIWorkflowSection = () => {
         
         <div className="workflow-steps">
           {steps.map((step, index) => (
-            <div key={index} className="workflow-step">
+            <div key={index} className={`workflow-step scale-in stagger-${index + 1}`}>
               <div className="step-number">{step.number}</div>
               <div className="step-icon">{step.icon}</div>
               <h3 className="step-title">{step.title}</h3>

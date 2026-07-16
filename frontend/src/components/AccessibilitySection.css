@@ -1,5 +1,5 @@
 .accessibility {
-  padding: 6rem 0;
+  padding: 8rem 0;
   background: #0B1F3A;
 }
 
@@ -11,7 +11,7 @@
 
 .accessibility-header {
   text-align: center;
-  margin-bottom: 4rem;
+  margin-bottom: 5rem;
 }
 
 .accessibility-title {
@@ -30,18 +30,21 @@
 
 .profiles-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2.5rem;
 }
 
 .profile-card {
   background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
-  padding: 2rem;
-  transition: all 0.3s ease;
+  padding: 2.5rem;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
 .profile-card::before {
@@ -58,8 +61,11 @@
 
 .profile-card:hover {
   transform: translateY(-8px);
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
   border-color: #00D4FF;
-  box-shadow: 0 20px 40px rgba(0, 212, 255, 0.15);
+  box-shadow: 0 20px 40px rgba(0, 212, 255, 0.2);
 }
 
 .profile-card:hover::before {
@@ -67,16 +73,19 @@
 }
 
 .profile-icon {
-  width: 70px;
-  height: 70px;
+  width: 72px;
+  height: 72px;
   background: linear-gradient(135deg, rgba(0, 212, 255, 0.2) 0%, rgba(230, 57, 70, 0.2) 100%);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
   border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 1.5rem;
   color: #00D4FF;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 16px rgba(0, 212, 255, 0.2);
 }
 
 .profile-card:hover .profile-icon {
@@ -104,14 +113,55 @@
 
 @media (max-width: 768px) {
   .accessibility {
-    padding: 4rem 0;
+    padding: 5rem 0;
+  }
+
+  .accessibility-container {
+    padding: 0 1.5rem;
   }
 
   .accessibility-title {
     font-size: 2rem;
   }
 
+  .accessibility-subtitle {
+    font-size: 1rem;
+  }
+
   .profiles-grid {
     grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .profile-card {
+    padding: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .accessibility {
+    padding: 4rem 0;
+  }
+
+  .accessibility-container {
+    padding: 0 1rem;
+  }
+
+  .accessibility-title {
+    font-size: 1.75rem;
+  }
+
+  .profile-card {
+    padding: 1.75rem;
+  }
+
+  .profile-icon {
+    width: 64px;
+    height: 64px;
+  }
+
+  .profile-icon svg {
+    width: 32px;
+    height: 32px;
   }
 }
