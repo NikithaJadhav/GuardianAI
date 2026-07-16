@@ -39,13 +39,31 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   padding: 2rem;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #00D4FF, #E63946);
+  transform: scaleX(0);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .feature-card:hover {
-  transform: translateY(-8px);
+  transform: translateY(-12px);
   border-color: #00D4FF;
-  box-shadow: 0 20px 40px rgba(0, 212, 255, 0.15);
+  box-shadow: 0 25px 50px rgba(0, 212, 255, 0.2);
+}
+
+.feature-card:hover::before {
+  transform: scaleX(1);
 }
 
 .feature-icon {
@@ -58,6 +76,13 @@
   justify-content: center;
   margin-bottom: 1.5rem;
   color: #E63946;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.feature-card:hover .feature-icon {
+  transform: scale(1.1) rotate(5deg);
+  background: rgba(230, 57, 70, 0.25);
+  box-shadow: 0 10px 30px rgba(230, 57, 70, 0.3);
 }
 
 .feature-icon svg {

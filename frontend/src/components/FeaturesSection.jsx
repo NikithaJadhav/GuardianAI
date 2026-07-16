@@ -11,56 +11,59 @@ const FeaturesSection = () => {
           <path d="M2 12l10 5 10-5"/>
         </svg>
       ),
-      title: 'Real-Time Detection',
-      description: 'Advanced AI algorithms continuously monitor patterns to detect emergencies before they escalate.'
+      title: 'AI Prediction',
+      description: 'Advanced machine learning models predict emergencies before they occur using pattern recognition and behavioral analysis.'
     },
     {
       icon: (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <circle cx="12" cy="12" r="10"/>
           <path d="M12 6v6l4 2"/>
+          <circle cx="12" cy="12" r="3"/>
         </svg>
       ),
-      title: 'Instant Response',
-      description: 'Automated alerts sent to emergency services and designated contacts within milliseconds.'
+      title: 'Multi-Sensor Detection',
+      description: 'Integrated sensors collect comprehensive data from accelerometers, gyroscopes, GPS, and environmental monitors.'
     },
     {
       icon: (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="M12 8v4"/>
+          <path d="M12 16h.01"/>
         </svg>
       ),
-      title: 'Privacy First',
-      description: 'All data processed locally with end-to-end encryption. Your information stays secure.'
-    },
-    {
-      icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-        </svg>
-      ),
-      title: 'Multi-Platform',
-      description: 'Works seamlessly across mobile, desktop, and IoT devices for comprehensive coverage.'
+      title: 'Emergency Confidence Score',
+      description: 'Real-time confidence scoring system that validates emergency detection accuracy to minimize false alarms.'
     },
     {
       icon: (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
           <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          <path d="M12 2v4"/>
+          <path d="M12 18v4"/>
+          <path d="M4.93 4.93l2.83 2.83"/>
+          <path d="M16.24 16.24l2.83 2.83"/>
+          <path d="M2 12h4"/>
+          <path d="M18 12h4"/>
+          <path d="M4.93 19.07l2.83-2.83"/>
+          <path d="M16.24 7.76l2.83-2.83"/>
         </svg>
       ),
-      title: 'Smart Notifications',
-      description: 'Context-aware alerts that distinguish between false alarms and genuine emergencies.'
+      title: 'Automatic Alerts',
+      description: 'Instant notification system that alerts emergency services, contacts, and responders with precise location data.'
     },
     {
       icon: (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <circle cx="12" cy="12" r="3"/>
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M2 12h20"/>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
         </svg>
       ),
-      title: 'Customizable',
-      description: 'Tailor detection sensitivity and alert preferences to match your specific needs.'
+      title: 'Accessibility Profiles',
+      description: 'Customizable profiles for different user groups including seniors, travelers, and persons with disabilities.'
     }
   ];
 

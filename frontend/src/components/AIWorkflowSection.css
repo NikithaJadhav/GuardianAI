@@ -30,7 +30,7 @@
 
 .workflow-steps {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 2rem;
   position: relative;
 }
@@ -39,6 +39,11 @@
   position: relative;
   text-align: center;
   padding: 2rem 1rem;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.workflow-step:hover {
+  transform: translateY(-8px);
 }
 
 .step-number {
@@ -47,6 +52,12 @@
   color: rgba(230, 57, 70, 0.2);
   line-height: 1;
   margin-bottom: 1rem;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.workflow-step:hover .step-number {
+  color: rgba(0, 212, 255, 0.3);
+  transform: scale(1.05);
 }
 
 .step-icon {
@@ -60,6 +71,14 @@
   margin: 0 auto 1.5rem;
   color: #00D4FF;
   border: 2px solid rgba(0, 212, 255, 0.3);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.workflow-step:hover .step-icon {
+  transform: scale(1.15) rotate(5deg);
+  background: rgba(0, 212, 255, 0.25);
+  border-color: #00D4FF;
+  box-shadow: 0 15px 35px rgba(0, 212, 255, 0.3);
 }
 
 .step-icon svg {
@@ -72,12 +91,22 @@
   font-weight: 600;
   color: white;
   margin-bottom: 0.75rem;
+  transition: color 0.3s ease;
+}
+
+.workflow-step:hover .step-title {
+  color: #00D4FF;
 }
 
 .step-description {
   font-size: 0.9rem;
   color: #9CA3AF;
   line-height: 1.6;
+  transition: color 0.3s ease;
+}
+
+.workflow-step:hover .step-description {
+  color: #B0B8C4;
 }
 
 .step-connector {
@@ -101,6 +130,12 @@
 
   .step-connector {
     display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .workflow-steps {
+    grid-template-columns: 1fr;
   }
 }
 
