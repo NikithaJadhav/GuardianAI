@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { AuthProvider } from './context/AuthContext';
 import Home from './pages/Home';
 import EmergencyDashboard from './pages/EmergencyDashboard';
 import EmergencyContacts from './pages/EmergencyContacts';
+import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
 function App() {
@@ -15,12 +17,28 @@ function App() {
   if (currentPage === 'home') {
     return <Home navigateTo={navigateTo} />;
   } else if (currentPage === 'emergency') {
-    return <EmergencyDashboard navigateTo={navigateTo} />;
+    return (
+      <ProtectedRoute>
+        <EmergencyDashboard navigateTo={navigateTo} />
+      </ProtectedRoute>
+    );
   } else if (currentPage === 'contacts') {
-    return <EmergencyContacts navigateTo={navigateTo} />;
+    return (
+      <ProtectedRoute>
+        <EmergencyContacts navigateTo={navigateTo} />
+      </ProtectedRoute>
+    );
   }
 
   return <Home navigateTo={navigateTo} />;
 }
 
-export default App;
+function AppWrapper() {
+  return (
+    <AuthProvider>
+      <App />
+    </AuthProvider>
+  );
+}
+
+export default AppWrapper;

@@ -1,8 +1,16 @@
 import React, { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 import './Navbar.css';
 
 const Navbar = ({ navigateTo }) => {
+  const { user, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const handleLogout = async () => {
+    await logout();
+    navigateTo('home');
+    setIsMenuOpen(false);
+  };
 
   return (
     <nav className="navbar">
@@ -22,20 +30,40 @@ const Navbar = ({ navigateTo }) => {
           <a href="#accessibility" className="nav-link">Accessibility</a>
           <button 
             className="nav-link nav-button" 
-            onClick={() => navigateTo('emergency')}
+            onClick={() => {
+              navigateTo('emergency');
+              setIsMenuOpen(false);
+            }}
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
           >
             Emergency Dashboard
           </button>
           <button 
             className="nav-link nav-button" 
-            onClick={() => navigateTo('contacts')}
+            onClick={() => {
+              navigateTo('contacts');
+              setIsMenuOpen(false);
+            }}
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
           >
             Emergency Contacts
           </button>
           <a href="#contact" className="nav-link">Contact</a>
-          <button className="nav-cta">Get Started</button>
+          {user ? (
+            <button className="nav-cta logout-button" onClick={handleLogout}>
+              Logout
+            </button>
+          ) : (
+            <button 
+              className="nav-cta"
+              onClick={() => {
+                navigateTo('emergency');
+                setIsMenuOpen(false);
+              }}
+            >
+              Get Started
+            </button>
+          )}
         </div>
 
         <button 

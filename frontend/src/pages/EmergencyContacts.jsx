@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { apiService } from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import { getUserContacts, createContact, updateContact, deleteContact } from '../firebase/firebaseService';
 import './EmergencyContacts.css';
 
 const EmergencyContacts = ({ navigateTo }) => {
+  const { user } = useAuth();
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -16,13 +18,17 @@ const EmergencyContacts = ({ navigateTo }) => {
   });
 
   useEffect(() => {
-    loadContacts();
-  }, []);
+    if (user) {
+      loadContacts();
+    }
+  }, [user]);
 
   const loadContacts = async () => {
+    if (!user) return;
+    
     setLoading(true);
     setError(null);
-    const response = await apiService.getContacts();
+    const response = await getUserContacts(user.uid);
     setLoading(false);
 
     if (response.success) {
@@ -46,9 +52,9 @@ const EmergencyContacts = ({ navigateTo }) => {
 
     let response;
     if (editingContact) {
-      response = await apiService.updateContact(editingContact.id, formData);
+      response = await updateContact(editingContact.id, formData);
     } else {
-      response = await apiService.createContact(formData);
+      response = await createContact(user.uid, formData);
     }
 
     if (response.success) {
@@ -77,7 +83,7 @@ const EmergencyContacts = ({ navigateTo }) => {
       return;
     }
 
-    const response = await apiService.deleteContact(contactId);
+    const response = await deleteContact(contactId);
     if (response.success) {
       loadContacts();
     } else {
