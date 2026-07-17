@@ -1,15 +1,25 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
 import HeroSection from '../components/HeroSection';
 import FeaturesSection from '../components/FeaturesSection';
 import AIWorkflowSection from '../components/AIWorkflowSection';
 import AccessibilitySection from '../components/AccessibilitySection';
 import Footer from '../components/Footer';
+import { apiService } from '../services/api';
 import './Home.css';
 import '../styles/animations.css';
 
 const Home = () => {
+  const [backendStatus, setBackendStatus] = useState('loading');
+
   useEffect(() => {
+    const checkBackend = async () => {
+      const result = await apiService.checkBackendConnection();
+      setBackendStatus(result.success ? 'connected' : 'offline');
+    };
+
+    checkBackend();
+
     const observerOptions = {
       root: null,
       rootMargin: '0px',
@@ -34,6 +44,26 @@ const Home = () => {
 
   return (
     <div className="home">
+      <div className={`backend-status ${backendStatus}`}>
+        {backendStatus === 'loading' && (
+          <div className="status-content">
+            <div className="status-spinner"></div>
+            <span>Connecting to backend...</span>
+          </div>
+        )}
+        {backendStatus === 'connected' && (
+          <div className="status-content">
+            <div className="status-icon connected">✓</div>
+            <span>Backend Connected Successfully</span>
+          </div>
+        )}
+        {backendStatus === 'offline' && (
+          <div className="status-content">
+            <div className="status-icon offline">✕</div>
+            <span>Backend Offline</span>
+          </div>
+        )}
+      </div>
       <Navbar />
       <HeroSection />
       <FeaturesSection />

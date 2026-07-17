@@ -3,18 +3,17 @@ Main Application Module
 
 This is the entry point for the GuardianAI FastAPI backend.
 It initializes the FastAPI application, configures CORS middleware,
-and includes all route modules.
+and provides a health check endpoint.
 """
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.config import settings
 
 # Create FastAPI application instance
 app = FastAPI(
-    title=settings.APP_NAME,
-    version=settings.APP_VERSION,
-    debug=settings.DEBUG,
+    title="GuardianAI",
+    version="1.0.0",
+    debug=True,
     description="GuardianAI Backend API"
 )
 
@@ -22,10 +21,10 @@ app = FastAPI(
 # This allows the React frontend to communicate with the backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,  # List of allowed origins
-    allow_credentials=True,  # Allow cookies and authentication headers
-    allow_methods=["*"],  # Allow all HTTP methods (GET, POST, PUT, DELETE, etc.)
-    allow_headers=["*"],  # Allow all headers
+    allow_origins=["http://localhost:5173", "http://localhost:3000", "http://localhost:5174", "http://127.0.0.1:5173", "http://127.0.0.1:3000", "http://127.0.0.1:5174"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
@@ -43,20 +42,13 @@ async def root():
     }
 
 
-# Include route modules (to be added later)
-# from app.routes import auth, ai, users
-# app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
-# app.include_router(ai.router, prefix="/api/ai", tags=["ai"])
-# app.include_router(users.router, prefix="/api/users", tags=["users"])
-
-
 if __name__ == "__main__":
     import uvicorn
     
     # Run the application using Uvicorn server
     uvicorn.run(
         "app.main:app",
-        host=settings.HOST,
-        port=settings.PORT,
-        reload=settings.DEBUG
+        host="0.0.0.0",
+        port=8000,
+        reload=True
     )
