@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Home from './pages/Home';
 import EmergencyDashboard from './pages/EmergencyDashboard';
+import EmergencyContacts from './pages/EmergencyContacts';
 import './App.css';
 
 function App() {
@@ -15,6 +16,8 @@ function App() {
     return <Home navigateTo={navigateTo} />;
   } else if (currentPage === 'emergency') {
     return <EmergencyDashboard navigateTo={navigateTo} />;
+  } else if (currentPage === 'contacts') {
+    return <EmergencyContacts navigateTo={navigateTo} />;
   }
 
   return <Home navigateTo={navigateTo} />;

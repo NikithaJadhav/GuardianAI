@@ -141,6 +141,44 @@ class EmergencyEngine:
             return 5, "Device locked (potential immobility)"
         return 0, ""
     
+    def analyze_audio_alert(self, audio_alert_score: float) -> Tuple[float, str]:
+        """
+        Analyze audio alert score (scream detection).
+        
+        Args:
+            audio_alert_score: Audio alert score (0-100)
+            
+        Returns:
+            Tuple of (score, reason)
+        """
+        if audio_alert_score >= 80:
+            return 20, "Distress sound detected (scream/alert)"
+        elif audio_alert_score >= 60:
+            return 12, "Suspicious audio detected"
+        elif audio_alert_score >= 40:
+            return 5, "Elevated audio levels detected"
+        return 0, ""
+    
+    def analyze_heart_rate(self, heart_rate: float) -> Tuple[float, str]:
+        """
+        Analyze heart rate for emergency indicators.
+        
+        Args:
+            heart_rate: Heart rate in BPM
+            
+        Returns:
+            Tuple of (score, reason)
+        """
+        if heart_rate >= 160:
+            return 15, "Extremely elevated heart rate detected"
+        elif heart_rate >= 140:
+            return 10, "High heart rate detected (possible distress)"
+        elif heart_rate <= 40:
+            return 15, "Abnormally low heart rate detected"
+        elif heart_rate <= 50:
+            return 8, "Low heart rate detected"
+        return 0, ""
+    
     def calculate_risk_level(self, confidence_score: float) -> RiskLevel:
         """
         Determine risk level based on confidence score.
@@ -183,12 +221,16 @@ class EmergencyEngine:
         
         Args:
             data: Dictionary containing sensor data:
-                - accelerometer: float (0-100)
-                - gyroscope: float (0-100)
-                - gps_speed: float (km/h)
-                - inactivity_time: float (minutes)
+                - accelerometer: float (0-100) [legacy] or impact_intensity: float (0-100) [new]
+                - gyroscope: float (0-100) [legacy] or motion_change: float (0-100) [new]
+                - gps_speed: float (km/h) [legacy] or speed: float (km/h) [new]
+                - inactivity_time: float (minutes) [legacy] or inactivity_duration: float (minutes) [new]
                 - screen_status: str ('Active' or 'Locked')
                 - accessibility_profile: str (optional)
+                - gps_latitude: float (optional) [new]
+                - gps_longitude: float (optional) [new]
+                - audio_alert_score: float (0-100) (optional) [new]
+                - heart_rate: float (BPM) (optional) [new]
                 
         Returns:
             Dictionary with analysis results:
@@ -197,12 +239,16 @@ class EmergencyEngine:
                 - risk_emoji: str
                 - reasons: List[str]
         """
-        # Extract sensor data with safe defaults
-        accelerometer = float(data.get('accelerometer', 0))
-        gyroscope = float(data.get('gyroscope', 0))
-        gps_speed = float(data.get('gps_speed', 0))
-        inactivity_time = float(data.get('inactivity_time', 0))
+        # Extract sensor data with safe defaults (support both legacy and new formats)
+        accelerometer = float(data.get('accelerometer', data.get('impact_intensity', 0)))
+        gyroscope = float(data.get('gyroscope', data.get('motion_change', 0)))
+        gps_speed = float(data.get('gps_speed', data.get('speed', 0)))
+        inactivity_time = float(data.get('inactivity_time', data.get('inactivity_duration', 0)))
         screen_status = data.get('screen_status', 'Active')
+        
+        # New sensor data fields
+        audio_alert_score = data.get('audio_alert_score')
+        heart_rate = data.get('heart_rate')
         
         # Analyze each factor
         reasons = []
@@ -237,6 +283,20 @@ class EmergencyEngine:
         total_score += location_score
         if location_reason:
             reasons.append(location_reason)
+        
+        # Audio alert analysis (scream detection)
+        if audio_alert_score:
+            audio_score, audio_reason = self.analyze_audio_alert(audio_alert_score)
+            total_score += audio_score
+            if audio_reason:
+                reasons.append(audio_reason)
+        
+        # Heart rate analysis
+        if heart_rate:
+            heart_score, heart_reason = self.analyze_heart_rate(heart_rate)
+            total_score += heart_score
+            if heart_reason:
+                reasons.append(heart_reason)
         
         # Cap confidence score at 100
         confidence = min(100, total_score)

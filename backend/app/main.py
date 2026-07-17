@@ -8,6 +8,9 @@ and provides a health check endpoint.
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.routes import contacts
+from app.services.alert_generator import alert_generator
+from app.services.notification_service import notification_service
 
 # Create FastAPI application instance
 app = FastAPI(
@@ -26,6 +29,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include routers
+app.include_router(contacts.router)
 
 
 # Health check endpoint
@@ -82,13 +88,35 @@ async def predict_emergency(data: dict):
         # Use the emergency intelligence engine to analyze the data
         analysis_result = emergency_engine.analyze(data)
         
+        # Generate alert if confidence exceeds threshold
+        alert = None
+        if analysis_result['confidence'] >= 90:
+            user_location = data.get('user_location')
+            alert = alert_generator.generate_alert(
+                confidence_score=analysis_result['confidence'],
+                risk_level=analysis_result['risk_level'],
+                reasons=analysis_result['reasons'],
+                user_location=user_location
+            )
+        
         # Map to frontend-compatible format
-        return {
+        response = {
             "confidence_score": analysis_result['confidence'],
             "risk_level": analysis_result['risk_level'],
             "risk_emoji": analysis_result['risk_emoji'],
             "reasons": analysis_result['reasons']
         }
+        
+        # Include alert if generated
+        if alert:
+            response['alert'] = {
+                'id': alert['id'],
+                'emergency_status': alert['emergency_status'],
+                'formatted_message': alert['formatted_message'],
+                'timestamp': alert['timestamp'].isoformat()
+            }
+        
+        return response
     except Exception as e:
         # Handle any errors gracefully
         return {
@@ -96,6 +124,40 @@ async def predict_emergency(data: dict):
             "confidence_score": 0,
             "risk_level": "Normal",
             "risk_emoji": "🟢"
+        }
+
+
+# Notify contacts endpoint for emergency alerts
+@app.post("/notify")
+async def notify_contacts(data: dict):
+    """
+    Notify emergency contacts about an alert.
+    
+    This endpoint triggers notifications to all registered emergency contacts
+    for a given alert ID.
+    
+    Args:
+        data: Dictionary containing:
+            - alert_id: str (ID of the alert to send notifications for)
+        
+    Returns:
+        dict: Notification results for each contact
+    """
+    alert_id = data.get('alert_id')
+    
+    if not alert_id:
+        return {
+            "error": "Missing required field: alert_id",
+            "success": False
+        }
+    
+    try:
+        notification_result = notification_service.notify_contacts(alert_id)
+        return notification_result
+    except Exception as e:
+        return {
+            "error": f"Notification failed: {str(e)}",
+            "success": False
         }
 
 

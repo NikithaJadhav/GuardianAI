@@ -27,6 +27,13 @@ const Navbar = ({ navigateTo }) => {
           >
             Emergency Dashboard
           </button>
+          <button 
+            className="nav-link nav-button" 
+            onClick={() => navigateTo('contacts')}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+          >
+            Emergency Contacts
+          </button>
           <a href="#contact" className="nav-link">Contact</a>
           <button className="nav-cta">Get Started</button>
         </div>
