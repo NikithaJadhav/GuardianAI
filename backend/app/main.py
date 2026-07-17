@@ -46,49 +46,57 @@ async def root():
 @app.post("/predict")
 async def predict_emergency(data: dict):
     """
-    Mock endpoint for emergency detection prediction.
+    Emergency detection prediction endpoint.
     
     This endpoint accepts sensor data and accessibility profile information,
-    then returns a mock emergency confidence score and risk level.
+    then uses the rule-based emergency intelligence engine to analyze
+    the data and return emergency confidence score and risk level.
     
     Args:
-        data: Dictionary containing sensor values and profile information
+        data: Dictionary containing sensor values and profile information:
+            - accelerometer: float (0-100)
+            - gyroscope: float (0-100)
+            - gps_speed: float (km/h)
+            - inactivity_time: float (minutes)
+            - screen_status: str ('Active' or 'Locked')
+            - accessibility_profile: str (optional)
         
     Returns:
-        dict: Emergency confidence score and risk level
+        dict: Emergency confidence score, risk level, and analysis reasons
     """
-    # Mock response - will be replaced with actual ML model later
-    import random
+    from app.services.emergency_engine import emergency_engine
     
-    # Generate a mock confidence score based on input values
-    accelerometer = data.get("accelerometer", 0)
-    gyroscope = data.get("gyroscope", 0)
-    gps_speed = data.get("gps_speed", 0)
-    inactivity_time = data.get("inactivity_time", 0)
+    # Validate required fields
+    required_fields = ['accelerometer', 'gyroscope', 'gps_speed', 'inactivity_time', 'screen_status']
+    missing_fields = [field for field in required_fields if field not in data]
     
-    # Simple mock logic: higher values = higher emergency risk
-    base_score = (accelerometer + gyroscope + (gps_speed / 1.5) + (inactivity_time * 2)) / 4
-    confidence_score = min(100, max(0, base_score + random.uniform(-10, 10)))
+    if missing_fields:
+        return {
+            "error": f"Missing required fields: {', '.join(missing_fields)}",
+            "confidence_score": 0,
+            "risk_level": "Normal",
+            "risk_emoji": "🟢"
+        }
     
-    # Determine risk level based on confidence score
-    if confidence_score < 25:
-        risk_level = "Normal"
-        risk_emoji = "🟢"
-    elif confidence_score < 50:
-        risk_level = "Monitor"
-        risk_emoji = "🟡"
-    elif confidence_score < 75:
-        risk_level = "Warning"
-        risk_emoji = "🟠"
-    else:
-        risk_level = "Emergency"
-        risk_emoji = "🔴"
-    
-    return {
-        "confidence_score": round(confidence_score, 2),
-        "risk_level": risk_level,
-        "risk_emoji": risk_emoji
-    }
+    try:
+        # Use the emergency intelligence engine to analyze the data
+        analysis_result = emergency_engine.analyze(data)
+        
+        # Map to frontend-compatible format
+        return {
+            "confidence_score": analysis_result['confidence'],
+            "risk_level": analysis_result['risk_level'],
+            "risk_emoji": analysis_result['risk_emoji'],
+            "reasons": analysis_result['reasons']
+        }
+    except Exception as e:
+        # Handle any errors gracefully
+        return {
+            "error": f"Analysis failed: {str(e)}",
+            "confidence_score": 0,
+            "risk_level": "Normal",
+            "risk_emoji": "🟢"
+        }
 
 
 if __name__ == "__main__":

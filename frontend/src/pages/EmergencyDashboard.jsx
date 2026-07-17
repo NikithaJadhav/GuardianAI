@@ -246,6 +246,20 @@ const EmergencyDashboard = ({ navigateTo }) => {
                     <span className="risk-text">{result.risk_level}</span>
                   </div>
                 </div>
+
+                {result.reasons && result.reasons.length > 0 && (
+                  <div className="reasons-container">
+                    <h3 className="reasons-title">Analysis Reasons</h3>
+                    <ul className="reasons-list">
+                      {result.reasons.map((reason, index) => (
+                        <li key={index} className="reason-item">
+                          <span className="reason-bullet">•</span>
+                          {reason}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             </div>
           )}
