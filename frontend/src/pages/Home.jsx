@@ -9,7 +9,7 @@ import { apiService } from '../services/api';
 import './Home.css';
 import '../styles/animations.css';
 
-const Home = () => {
+const Home = ({ navigateTo }) => {
   const [backendStatus, setBackendStatus] = useState('loading');
 
   useEffect(() => {
@@ -64,7 +64,7 @@ const Home = () => {
           </div>
         )}
       </div>
-      <Navbar />
+      <Navbar navigateTo={navigateTo} />
       <HeroSection />
       <FeaturesSection />
       <AIWorkflowSection />

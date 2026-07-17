@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './Navbar.css';
 
-const Navbar = () => {
+const Navbar = ({ navigateTo }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
@@ -20,6 +20,13 @@ const Navbar = () => {
           <a href="#features" className="nav-link">Features</a>
           <a href="#workflow" className="nav-link">How It Works</a>
           <a href="#accessibility" className="nav-link">Accessibility</a>
+          <button 
+            className="nav-link nav-button" 
+            onClick={() => navigateTo('emergency')}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+          >
+            Emergency Dashboard
+          </button>
           <a href="#contact" className="nav-link">Contact</a>
           <button className="nav-cta">Get Started</button>
         </div>
