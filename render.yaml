@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: guardianai-backend
+    runtime: python
+    rootDir: backend
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /
+    envVars:
+      # Comma-separated production frontend origin(s), e.g. https://guardianai.vercel.app
+      # Use "*" to allow any origin.
+      - key: ALLOWED_ORIGINS
+        sync: false
+      # Twilio credentials for real SMS delivery (optional; SMS is skipped if unset).
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_PHONE_NUMBER
+        sync: false

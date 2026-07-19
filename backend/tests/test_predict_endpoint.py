@@ -58,3 +58,35 @@ def test_notify_unknown_alert_id_returns_not_found(client):
     body = resp.json()
     assert body["success"] is False
     assert body["error"] == "Alert not found"
+
+
+def test_notify_uses_contacts_from_request(client):
+    # Generate a real alert to get a valid alert_id.
+    predict = client.post("/predict", json=_valid_payload(audio_alert_score=100))
+    alert_id = predict.json()["alert"]["id"]
+
+    resp = client.post(
+        "/notify",
+        json={
+            "alert_id": alert_id,
+            "contacts": [
+                {"name": "Mom", "phone_number": "+15551234567", "relationship": "Parent"},
+                {"name": "Dad", "phone_number": "+15559876543"},
+            ],
+        },
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    # Contacts passed in the request are used even though the server-side store is empty.
+    assert body["success"] is True
+    assert body["total_contacts"] == 2
+    names = {n["contact_name"] for n in body["notifications"]}
+    assert names == {"Mom", "Dad"}
+
+
+def test_notify_contact_requires_phone_number(client):
+    resp = client.post(
+        "/notify",
+        json={"alert_id": "x", "contacts": [{"name": "NoPhone"}]},
+    )
+    assert resp.status_code == 422

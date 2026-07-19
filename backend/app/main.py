@@ -6,6 +6,8 @@ It initializes the FastAPI application, configures CORS middleware,
 and provides a health check endpoint.
 """
 
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes import contacts
@@ -22,13 +24,26 @@ app = FastAPI(
 )
 
 # Configure CORS middleware
-# This allows the React frontend to communicate with the backend
+# This allows the React frontend to communicate with the backend.
+# Local dev origins are always allowed; additional production origins (e.g. the
+# deployed Vercel domain) can be added via the ALLOWED_ORIGINS env var
+# (comma-separated). Set ALLOWED_ORIGINS="*" to allow any origin.
+_default_origins = [
+    "http://localhost:5173", "http://localhost:3000", "http://localhost:5174",
+    "http://127.0.0.1:5173", "http://127.0.0.1:3000", "http://127.0.0.1:5174",
+]
+_env_origins = [o.strip() for o in os.getenv("ALLOWED_ORIGINS", "").split(",") if o.strip()]
+
+if "*" in _env_origins:
+    cors_kwargs = {"allow_origin_regex": ".*", "allow_credentials": True}
+else:
+    cors_kwargs = {"allow_origins": _default_origins + _env_origins, "allow_credentials": True}
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000", "http://localhost:5174", "http://127.0.0.1:5173", "http://127.0.0.1:3000", "http://127.0.0.1:5174"],
-    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    **cors_kwargs,
 )
 
 # Include routers
@@ -131,7 +146,8 @@ async def notify_contacts(request: NotifyRequest):
         dict: Notification results for each contact
     """
     try:
-        notification_result = notification_service.notify_contacts(request.alert_id)
+        contacts_payload = [c.model_dump() for c in request.contacts] if request.contacts else None
+        notification_result = notification_service.notify_contacts(request.alert_id, contacts_payload)
         return notification_result
     except Exception as e:
         return {

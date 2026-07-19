@@ -65,6 +65,14 @@ class NotificationService:
         """
         return contact_model.get_all()
     
+    @staticmethod
+    def _normalize_contact(contact: dict, index: int) -> dict:
+        """Ensure a caller-supplied contact has the fields the notifier expects."""
+        normalized = dict(contact)
+        normalized.setdefault('id', normalized.get('id') or f"contact-{index}")
+        normalized.setdefault('name', 'Emergency Contact')
+        return normalized
+    
     def format_alert_for_notification(self, alert: dict) -> str:
         """
         Format alert for notification channels.
@@ -334,12 +342,15 @@ If this is a real emergency please contact the user immediately."""
                 'contact_name': contact.get('name')
             }
     
-    def notify_contacts(self, alert_id: str) -> Dict:
+    def notify_contacts(self, alert_id: str, contacts: Optional[List[dict]] = None) -> Dict:
         """
-        Notify all emergency contacts about an alert.
+        Notify emergency contacts about an alert.
         
         Args:
             alert_id: ID of the alert to send notifications for
+            contacts: Optional list of contacts to notify (e.g. the user's saved
+                contacts sent from the frontend). When omitted, falls back to the
+                server-side contact store.
             
         Returns:
             Dictionary with notification results for each contact
@@ -353,8 +364,12 @@ If this is a real emergency please contact the user immediately."""
                 'notifications': []
             }
         
-        # Get all emergency contacts
-        contacts = self.get_emergency_contacts()
+        # Use contacts passed from the caller (the app's saved contacts) when
+        # available; otherwise fall back to the server-side store.
+        if contacts:
+            contacts = [self._normalize_contact(c, i) for i, c in enumerate(contacts)]
+        else:
+            contacts = self.get_emergency_contacts()
         
         if not contacts:
             return {
