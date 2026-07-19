@@ -108,8 +108,10 @@ class NotificationService:
         else:
             time_str = "Unknown time"
         
-        # Build SMS message
-        sms_body = f"""🚨 GuardianAI Emergency Alert
+        # Build SMS message.
+        # Keep the body plain ASCII (GSM-7): emoji/bullets force multi-segment
+        # Unicode messages that some carriers (e.g. in India) reject.
+        sms_body = f"""GuardianAI Emergency Alert
 
 Emergency Detected!
 
@@ -120,10 +122,10 @@ Reason(s):"""
         
         # Add reasons (limit to 3 for SMS)
         for i, reason in enumerate(reasons[:3]):
-            sms_body += f"\n• {reason}"
+            sms_body += f"\n- {reason}"
         
         if len(reasons) > 3:
-            sms_body += f"\n• ... and {len(reasons) - 3} more"
+            sms_body += f"\n- ... and {len(reasons) - 3} more"
         
         sms_body += f"""
 
