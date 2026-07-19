@@ -1,7 +1,11 @@
 import React from 'react';
 import './HeroSection.css';
 
-const HeroSection = () => {
+const HeroSection = ({ navigateTo }) => {
+  const scrollToFeatures = () => {
+    document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
     <section className="hero">
       <div className="hero-container">
@@ -13,8 +17,8 @@ const HeroSection = () => {
             and contextual analysis before users can manually request help.
           </p>
           <div className="hero-buttons">
-            <button className="btn btn-primary">Get Started</button>
-            <button className="btn btn-secondary">Learn More</button>
+            <button className="btn btn-primary" onClick={() => navigateTo('emergency')}>Get Started</button>
+            <button className="btn btn-secondary" onClick={scrollToFeatures}>Learn More</button>
           </div>
         </div>
         

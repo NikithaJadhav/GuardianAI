@@ -65,7 +65,7 @@ const Home = ({ navigateTo }) => {
         )}
       </div>
       <Navbar navigateTo={navigateTo} />
-      <HeroSection />
+      <HeroSection navigateTo={navigateTo} />
       <FeaturesSection />
       <AIWorkflowSection />
       <AccessibilitySection />
