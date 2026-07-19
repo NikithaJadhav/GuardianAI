@@ -98,7 +98,7 @@ class NotificationService:
         confidence = alert.get('confidence_score', 0)
         risk_level = alert.get('risk_level', 'Unknown')
         reasons = alert.get('reasons', [])
-        location = alert.get('user_address', alert.get('user_location', 'Location not available'))
+        location = alert.get('user_address') or alert.get('user_location') or 'Location not available'
         google_maps_link = alert.get('google_maps_link', '')
         timestamp = alert.get('timestamp')
         
