@@ -65,6 +65,14 @@ class NotificationService:
         """
         return contact_model.get_all()
     
+    @staticmethod
+    def _normalize_contact(contact: dict, index: int) -> dict:
+        """Ensure a caller-supplied contact has the fields the notifier expects."""
+        normalized = dict(contact)
+        normalized.setdefault('id', normalized.get('id') or f"contact-{index}")
+        normalized.setdefault('name', 'Emergency Contact')
+        return normalized
+    
     def format_alert_for_notification(self, alert: dict) -> str:
         """
         Format alert for notification channels.
@@ -90,7 +98,7 @@ class NotificationService:
         confidence = alert.get('confidence_score', 0)
         risk_level = alert.get('risk_level', 'Unknown')
         reasons = alert.get('reasons', [])
-        location = alert.get('user_address', alert.get('user_location', 'Location not available'))
+        location = alert.get('user_address') or alert.get('user_location') or 'Location not available'
         google_maps_link = alert.get('google_maps_link', '')
         timestamp = alert.get('timestamp')
         
@@ -100,8 +108,10 @@ class NotificationService:
         else:
             time_str = "Unknown time"
         
-        # Build SMS message
-        sms_body = f"""🚨 GuardianAI Emergency Alert
+        # Build SMS message.
+        # Keep the body plain ASCII (GSM-7): emoji/bullets force multi-segment
+        # Unicode messages that some carriers (e.g. in India) reject.
+        sms_body = f"""GuardianAI Emergency Alert
 
 Emergency Detected!
 
@@ -112,10 +122,10 @@ Reason(s):"""
         
         # Add reasons (limit to 3 for SMS)
         for i, reason in enumerate(reasons[:3]):
-            sms_body += f"\n• {reason}"
+            sms_body += f"\n- {reason}"
         
         if len(reasons) > 3:
-            sms_body += f"\n• ... and {len(reasons) - 3} more"
+            sms_body += f"\n- ... and {len(reasons) - 3} more"
         
         sms_body += f"""
 
@@ -334,12 +344,15 @@ If this is a real emergency please contact the user immediately."""
                 'contact_name': contact.get('name')
             }
     
-    def notify_contacts(self, alert_id: str) -> Dict:
+    def notify_contacts(self, alert_id: str, contacts: Optional[List[dict]] = None) -> Dict:
         """
-        Notify all emergency contacts about an alert.
+        Notify emergency contacts about an alert.
         
         Args:
             alert_id: ID of the alert to send notifications for
+            contacts: Optional list of contacts to notify (e.g. the user's saved
+                contacts sent from the frontend). When omitted, falls back to the
+                server-side contact store.
             
         Returns:
             Dictionary with notification results for each contact
@@ -353,8 +366,12 @@ If this is a real emergency please contact the user immediately."""
                 'notifications': []
             }
         
-        # Get all emergency contacts
-        contacts = self.get_emergency_contacts()
+        # Use contacts passed from the caller (the app's saved contacts) when
+        # available; otherwise fall back to the server-side store.
+        if contacts:
+            contacts = [self._normalize_contact(c, i) for i, c in enumerate(contacts)]
+        else:
+            contacts = self.get_emergency_contacts()
         
         if not contacts:
             return {

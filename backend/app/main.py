@@ -6,9 +6,12 @@ It initializes the FastAPI application, configures CORS middleware,
 and provides a health check endpoint.
 """
 
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes import contacts
+from app.schemas.prediction import PredictionRequest, NotifyRequest
 from app.services.alert_generator import alert_generator
 from app.services.notification_service import notification_service
 
@@ -21,13 +24,26 @@ app = FastAPI(
 )
 
 # Configure CORS middleware
-# This allows the React frontend to communicate with the backend
+# This allows the React frontend to communicate with the backend.
+# Local dev origins are always allowed; additional production origins (e.g. the
+# deployed Vercel domain) can be added via the ALLOWED_ORIGINS env var
+# (comma-separated). Set ALLOWED_ORIGINS="*" to allow any origin.
+_default_origins = [
+    "http://localhost:5173", "http://localhost:3000", "http://localhost:5174",
+    "http://127.0.0.1:5173", "http://127.0.0.1:3000", "http://127.0.0.1:5174",
+]
+_env_origins = [o.strip() for o in os.getenv("ALLOWED_ORIGINS", "").split(",") if o.strip()]
+
+if "*" in _env_origins:
+    cors_kwargs = {"allow_origin_regex": ".*", "allow_credentials": True}
+else:
+    cors_kwargs = {"allow_origins": _default_origins + _env_origins, "allow_credentials": True}
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000", "http://localhost:5174", "http://127.0.0.1:5173", "http://127.0.0.1:3000", "http://127.0.0.1:5174"],
-    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    **cors_kwargs,
 )
 
 # Include routers
@@ -50,7 +66,7 @@ async def root():
 
 # Predict endpoint for emergency detection
 @app.post("/predict")
-async def predict_emergency(data: dict):
+async def predict_emergency(request: PredictionRequest):
     """
     Emergency detection prediction endpoint.
     
@@ -59,30 +75,14 @@ async def predict_emergency(data: dict):
     the data and return emergency confidence score and risk level.
     
     Args:
-        data: Dictionary containing sensor values and profile information:
-            - accelerometer: float (0-100)
-            - gyroscope: float (0-100)
-            - gps_speed: float (km/h)
-            - inactivity_time: float (minutes)
-            - screen_status: str ('Active' or 'Locked')
-            - accessibility_profile: str (optional)
+        request: Validated sensor values and profile information.
         
     Returns:
         dict: Emergency confidence score, risk level, and analysis reasons
     """
     from app.services.emergency_engine import emergency_engine
     
-    # Validate required fields
-    required_fields = ['accelerometer', 'gyroscope', 'gps_speed', 'inactivity_time', 'screen_status']
-    missing_fields = [field for field in required_fields if field not in data]
-    
-    if missing_fields:
-        return {
-            "error": f"Missing required fields: {', '.join(missing_fields)}",
-            "confidence_score": 0,
-            "risk_level": "Normal",
-            "risk_emoji": "🟢"
-        }
+    data = request.model_dump()
     
     try:
         # Use the emergency intelligence engine to analyze the data
@@ -91,18 +91,14 @@ async def predict_emergency(data: dict):
         # Generate alert if confidence exceeds threshold
         alert = None
         if analysis_result['confidence'] >= 90:
-            user_location = data.get('user_location')
-            user_address = data.get('user_address')
-            gps_latitude = data.get('gps_latitude')
-            gps_longitude = data.get('gps_longitude')
             alert = alert_generator.generate_alert(
                 confidence_score=analysis_result['confidence'],
                 risk_level=analysis_result['risk_level'],
                 reasons=analysis_result['reasons'],
-                user_location=user_location,
-                user_address=user_address,
-                gps_latitude=gps_latitude,
-                gps_longitude=gps_longitude
+                user_location=request.user_location,
+                user_address=request.user_address,
+                gps_latitude=request.gps_latitude,
+                gps_longitude=request.gps_longitude
             )
         
         # Map to frontend-compatible format
@@ -136,7 +132,7 @@ async def predict_emergency(data: dict):
 
 # Notify contacts endpoint for emergency alerts
 @app.post("/notify")
-async def notify_contacts(data: dict):
+async def notify_contacts(request: NotifyRequest):
     """
     Notify emergency contacts about an alert.
     
@@ -144,22 +140,14 @@ async def notify_contacts(data: dict):
     for a given alert ID.
     
     Args:
-        data: Dictionary containing:
-            - alert_id: str (ID of the alert to send notifications for)
+        request: Validated payload containing the alert_id to notify contacts about.
         
     Returns:
         dict: Notification results for each contact
     """
-    alert_id = data.get('alert_id')
-    
-    if not alert_id:
-        return {
-            "error": "Missing required field: alert_id",
-            "success": False
-        }
-    
     try:
-        notification_result = notification_service.notify_contacts(alert_id)
+        contacts_payload = [c.model_dump() for c in request.contacts] if request.contacts else None
+        notification_result = notification_service.notify_contacts(request.alert_id, contacts_payload)
         return notification_result
     except Exception as e:
         return {

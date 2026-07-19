@@ -16,8 +16,7 @@ import {
   updateDoc, 
   deleteDoc, 
   query, 
-  where, 
-  orderBy 
+  where 
 } from 'firebase/firestore';
 import { auth, db } from './firebase';
 
@@ -125,17 +124,17 @@ export const createContact = async (userId, contactData) => {
 export const getUserContacts = async (userId) => {
   try {
     const contactsRef = collection(db, 'contacts');
-    const q = query(
-      contactsRef, 
-      where('userId', '==', userId),
-      orderBy('createdAt', 'desc')
-    );
+    // Query by userId only (no orderBy) so this does not require a composite
+    // Firestore index; results are sorted client-side by creation time.
+    const q = query(contactsRef, where('userId', '==', userId));
     const querySnapshot = await getDocs(q);
     
     const contacts = [];
     querySnapshot.forEach((doc) => {
       contacts.push({ id: doc.id, ...doc.data() });
     });
+    
+    contacts.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
     
     return { success: true, data: contacts };
   } catch (error) {

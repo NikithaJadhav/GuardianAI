@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { apiService } from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import { getUserContacts } from '../firebase/firebaseService';
 import { useSensorMonitoring } from '../hooks/useSensorMonitoring';
 import { useAudioMonitoring } from '../hooks/useAudioMonitoring';
 import { useEmergencyDetection } from '../hooks/useEmergencyDetection';
@@ -7,6 +9,7 @@ import EmergencyCountdown from '../components/EmergencyCountdown';
 import './EmergencyDashboard.css';
 
 const EmergencyDashboard = ({ navigateTo }) => {
+  const { user } = useAuth();
   const [mode, setMode] = useState('manual'); // 'manual' or 'automatic'
   
   const [formData, setFormData] = useState({
@@ -114,6 +117,47 @@ const EmergencyDashboard = ({ navigateTo }) => {
     }, 30000); // 30 second cooldown
   }, []);
 
+  // Load the user's saved emergency contacts and send the alert to them.
+  // These contacts live in Firestore (per user), so we forward them to the
+  // backend /notify endpoint which dispatches SMS to each.
+  const dispatchNotification = useCallback(async (alertId) => {
+    setNotificationStatus({ status: 'pending', alertId });
+
+    let contacts = [];
+    if (user) {
+      const res = await getUserContacts(user.uid);
+      if (res.success) {
+        contacts = res.data;
+      }
+    }
+
+    const payloadContacts = contacts.map((c) => ({
+      name: c.name,
+      phone_number: c.phone_number,
+      email: c.email || null,
+      relationship: c.relationship || null,
+    }));
+
+    const notifyResponse = await apiService.notifyContacts({
+      alert_id: alertId,
+      contacts: payloadContacts,
+    });
+
+    const data = notifyResponse.data || {};
+    let status;
+    if (!notifyResponse.success) {
+      status = 'failed';
+    } else if (data.success && data.sent > 0) {
+      status = 'sent';
+    } else if (payloadContacts.length === 0 || data.error === 'No emergency contacts registered') {
+      status = 'no_contacts';
+    } else {
+      status = 'skipped';
+    }
+
+    setNotificationStatus({ status, ...data });
+  }, [user]);
+
   // Trigger automatic emergency response
   const triggerAutomaticEmergency = useCallback(async () => {
     setCountdownVisible(false);
@@ -158,22 +202,10 @@ const EmergencyDashboard = ({ navigateTo }) => {
       setResult(response.data);
       
       if (response.data.alert) {
-        setNotificationStatus({ 
-          status: 'pending', 
-          alertId: response.data.alert.id 
-        });
-        
-        const notifyResponse = await apiService.notifyContacts({ 
-          alert_id: response.data.alert.id 
-        });
-        
-        setNotificationStatus({
-          status: notifyResponse.success ? 'sent' : 'failed',
-          ...notifyResponse.data
-        });
+        await dispatchNotification(response.data.alert.id);
       }
     }
-  }, []);
+  }, [dispatchNotification]);
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
@@ -290,22 +322,9 @@ const EmergencyDashboard = ({ navigateTo }) => {
     if (response.success) {
       setResult(response.data);
       
-      // If alert was generated, trigger notification
+      // If alert was generated, notify the user's saved emergency contacts
       if (response.data.alert) {
-        setNotificationStatus({ 
-          status: 'pending', 
-          alertId: response.data.alert.id 
-        });
-        
-        // Trigger notification
-        const notifyResponse = await apiService.notifyContacts({ 
-          alert_id: response.data.alert.id 
-        });
-        
-        setNotificationStatus({
-          status: notifyResponse.success ? 'sent' : 'failed',
-          ...notifyResponse.data
-        });
+        await dispatchNotification(response.data.alert.id);
       }
     } else {
       setError(response.error);
@@ -683,11 +702,15 @@ const EmergencyDashboard = ({ navigateTo }) => {
                 <div className="notification-container">
                   <h3 className="notification-title">📢 Notification Status</h3>
                   <div className={`notification-status ${notificationStatus.status}`}>
-                    {notificationStatus.status === 'sent' ? '✅ Notifications sent successfully' : '❌ Notification failed'}
+                    {notificationStatus.status === 'pending' && '⏳ Notifying your emergency contacts...'}
+                    {notificationStatus.status === 'sent' && `✅ Alert sent to ${notificationStatus.sent} of ${notificationStatus.total_contacts} contact(s)`}
+                    {notificationStatus.status === 'no_contacts' && '⚠️ No emergency contacts saved — add contacts to receive alerts'}
+                    {notificationStatus.status === 'skipped' && `⚠️ Reached ${notificationStatus.total_contacts} contact(s), but SMS delivery is not configured (Twilio credentials required)`}
+                    {notificationStatus.status === 'failed' && '❌ Notification failed'}
                   </div>
-                  {notificationStatus.total_contacts && (
+                  {notificationStatus.total_contacts > 0 && notificationStatus.status !== 'skipped' && (
                     <div className="notification-details">
-                      <span className="notification-detail">Contacts notified: {notificationStatus.total_contacts}</span>
+                      <span className="notification-detail">Contacts notified: {notificationStatus.sent}/{notificationStatus.total_contacts}</span>
                     </div>
                   )}
                 </div>
