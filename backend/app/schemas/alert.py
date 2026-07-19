@@ -16,6 +16,9 @@ class AlertBase(BaseModel):
     risk_level: str = Field(..., description="Risk level (Normal, Monitor, Warning, Emergency)")
     reasons: List[str] = Field(..., description="List of reasons for the alert")
     user_location: Optional[str] = Field(None, description="User location (GPS coordinates or address)")
+    user_address: Optional[str] = Field(None, description="Human-readable address from reverse geocoding")
+    gps_latitude: Optional[float] = Field(None, description="GPS latitude coordinate")
+    gps_longitude: Optional[float] = Field(None, description="GPS longitude coordinate")
 
 
 class AlertCreate(AlertBase):
@@ -28,6 +31,7 @@ class AlertResponse(AlertBase):
     id: str
     timestamp: datetime
     formatted_message: str
+    google_maps_link: Optional[str] = Field(None, description="Google Maps link for location")
 
     class Config:
         from_attributes = True

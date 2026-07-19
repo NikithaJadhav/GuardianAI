@@ -92,11 +92,17 @@ async def predict_emergency(data: dict):
         alert = None
         if analysis_result['confidence'] >= 90:
             user_location = data.get('user_location')
+            user_address = data.get('user_address')
+            gps_latitude = data.get('gps_latitude')
+            gps_longitude = data.get('gps_longitude')
             alert = alert_generator.generate_alert(
                 confidence_score=analysis_result['confidence'],
                 risk_level=analysis_result['risk_level'],
                 reasons=analysis_result['reasons'],
-                user_location=user_location
+                user_location=user_location,
+                user_address=user_address,
+                gps_latitude=gps_latitude,
+                gps_longitude=gps_longitude
             )
         
         # Map to frontend-compatible format
@@ -113,7 +119,8 @@ async def predict_emergency(data: dict):
                 'id': alert['id'],
                 'emergency_status': alert['emergency_status'],
                 'formatted_message': alert['formatted_message'],
-                'timestamp': alert['timestamp'].isoformat()
+                'timestamp': alert['timestamp'].isoformat(),
+                'google_maps_link': alert.get('google_maps_link')
             }
         
         return response

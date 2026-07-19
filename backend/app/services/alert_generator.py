@@ -37,7 +37,10 @@ class AlertGenerator:
         confidence_score: float,
         risk_level: str,
         reasons: list,
-        user_location: Optional[str] = None
+        user_location: Optional[str] = None,
+        user_address: Optional[str] = None,
+        gps_latitude: Optional[float] = None,
+        gps_longitude: Optional[float] = None
     ) -> Optional[dict]:
         """
         Generate an emergency alert.
@@ -47,6 +50,9 @@ class AlertGenerator:
             risk_level: Risk level (Normal, Monitor, Warning, Emergency)
             reasons: List of reasons for the alert
             user_location: User's GPS location (optional)
+            user_address: Human-readable address from reverse geocoding (optional)
+            gps_latitude: GPS latitude coordinate (optional)
+            gps_longitude: GPS longitude coordinate (optional)
             
         Returns:
             Generated alert if confidence exceeds threshold, None otherwise
@@ -67,7 +73,10 @@ class AlertGenerator:
             "confidence_score": confidence_score,
             "risk_level": risk_level,
             "reasons": reasons,
-            "user_location": user_location
+            "user_location": user_location,
+            "user_address": user_address,
+            "gps_latitude": gps_latitude,
+            "gps_longitude": gps_longitude
         }
         
         alert = alert_model.create(alert_data)

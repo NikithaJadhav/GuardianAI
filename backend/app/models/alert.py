@@ -36,6 +36,11 @@ class AlertModel:
         # Generate formatted message
         formatted_message = self._format_alert_message(alert_data)
         
+        # Generate Google Maps link if coordinates available
+        google_maps_link = None
+        if alert_data.get("gps_latitude") and alert_data.get("gps_longitude"):
+            google_maps_link = f"https://maps.google.com/?q={alert_data['gps_latitude']},{alert_data['gps_longitude']}"
+        
         alert = {
             "id": alert_id,
             "emergency_status": alert_data["emergency_status"],
@@ -43,8 +48,12 @@ class AlertModel:
             "risk_level": alert_data["risk_level"],
             "reasons": alert_data["reasons"],
             "user_location": alert_data.get("user_location"),
+            "user_address": alert_data.get("user_address"),
+            "gps_latitude": alert_data.get("gps_latitude"),
+            "gps_longitude": alert_data.get("gps_longitude"),
             "timestamp": now,
-            "formatted_message": formatted_message
+            "formatted_message": formatted_message,
+            "google_maps_link": google_maps_link
         }
         
         self._alerts[alert_id] = alert
@@ -64,16 +73,28 @@ class AlertModel:
         risk_level = alert_data["risk_level"]
         reasons = alert_data["reasons"]
         location = alert_data.get("user_location", "Location not available")
+        address = alert_data.get("user_address", "Address not available")
         timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+        date = datetime.utcnow().strftime("%Y-%m-%d")
+        time = datetime.utcnow().strftime("%H:%M:%S UTC")
+        
+        # Get GPS coordinates
+        gps_latitude = alert_data.get("gps_latitude")
+        gps_longitude = alert_data.get("gps_longitude")
+        
+        # Generate Google Maps link
+        google_maps_link = None
+        if gps_latitude and gps_longitude:
+            google_maps_link = f"https://maps.google.com/?q={gps_latitude},{gps_longitude}"
         
         message = f"""🚨 GuardianAI Emergency Alert
 
-Possible emergency detected.
+Emergency Detected
 
 Risk Level:
 {risk_level.upper()}
 
-Confidence:
+Confidence Score:
 {confidence}%
 
 Reasons:
@@ -82,12 +103,28 @@ Reasons:
             message += f"- {reason}\n"
         
         message += f"""
-Location:
-{location}
+Current Date:
+{date}
 
-Time:
-{timestamp}
+Current Time:
+{time}
+
+Live GPS Coordinates:
 """
+        if gps_latitude and gps_longitude:
+            message += f"Latitude: {gps_latitude}\n"
+            message += f"Longitude: {gps_longitude}\n"
+        else:
+            message += "Location not available\n"
+        
+        message += f"""
+Location:
+{address}
+
+"""
+        if google_maps_link:
+            message += f"Google Maps Link:\n{google_maps_link}\n"
+        
         return message
     
     def get_all(self) -> List[dict]:
